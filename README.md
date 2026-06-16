@@ -96,6 +96,9 @@ Java Project
                with [file:line] citations
 
 ```
+
+
+
 ## Core Features
 ### 🏗️ Phase 1 — Foundation (Structural Indexing)
  * **AST Parser:** Utilizes JavaParser to extract granular syntactic data (classes, methods, signatures, annotations, call expressions) conforming to Java 21 features.
@@ -203,6 +206,4 @@ Standard RAG relies entirely on semantic or textual match similarities. If a dev
  * [ ] **IDE Native Extension:** Integration panels inside VS Code and IntelliJ IDEA.
  * [ ] **Multi-Language Adaptability:** Support for Python, Go, and TypeScript syntax parsers.
  * [ ] **Git Blame Integration:** Mapping organizational code ownership directly against commit patterns and structural graphs.
-## License
-Distributed under the MIT License. See LICENSE for details.
-*Engineered by Developers, for Developers. Free to modify, private by design.*
+
