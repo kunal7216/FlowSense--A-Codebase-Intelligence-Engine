@@ -1,0 +1,86 @@
+spring:
+  application:
+    name: flowsense-core
+
+  # PostgreSQL
+  datasource:
+    url: jdbc:postgresql://localhost:5432/flowsense
+    username: flowsense
+    password: flowsense123
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  # Neo4j
+  neo4j:
+    uri: bolt://localhost:7687
+    authentication:
+      username: neo4j
+      password: flowsense123
+
+  # Redis
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000ms
+
+  # Spring AI - Ollama (FREE, runs locally)
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        model: codellama:13b
+        options:
+          temperature: 0.1        # Low = more deterministic, accurate
+          num-ctx: 8192           # Context window
+          top-p: 0.9
+      embedding:
+        model: nomic-embed-text   # FREE local embeddings
+
+# JWT Config
+jwt:
+  secret: flowsense-super-secret-key-change-in-production-must-be-256-bits
+  expiration: 86400000            # 24 hours in ms
+
+# Server
+server:
+  port: 8080
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# Logging
+logging:
+  level:
+    com.flowsense: DEBUG
+    org.springframework.ai: INFO
+    org.neo4j: WARN
+  pattern:
+    console: "%d{HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# FlowSense custom config
+flowsense:
+  parser:
+    max-file-size-mb: 10
+    supported-extensions:
+      - .java
+  embedding:
+    batch-size: 50               # Embed 50 methods at a time
+    cache-ttl-hours: 24
+  graph:
+    max-depth: 10                # Max traversal depth
