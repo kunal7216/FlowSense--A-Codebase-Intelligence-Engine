@@ -1,209 +1,241 @@
+# FlowSense Pro 🧠
+### AI-Powered Codebase Intelligence Engine
 
-# FlowSense 
-### A Codebase Intelligence Engine for Java
-Java 21
+> *"I built a system that parses any Java codebase into a knowledge graph,
+> answers architectural questions in natural language, and predicts
+> production incident probability before code merges."*
 
-Spring Boot 3.x
+---
 
-License: MIT
-> Parse any Java project into a high-fidelity knowledge graph. Ask complex architectural questions in plain English. Predict production incidents and pull request risks before they deploy—all running locally on your hardware.
-> 
-## 📖 Table of Contents
- 1. What Is FlowSense Pro?
- 2. The Problem It Solves
- 3. System Architecture
- 4. Core Features
- 5. Tech Stack
- 6. Quick Start
- 7. API Reference
- 8. Project Structure
- 9. Deep Dive: Architecture Decisions
- 10. Roadmap & License
-## What Is FlowSense Pro?
-**FlowSense Pro** is a production-grade backend system that transforms complex Java codebases into queryable semantic knowledge graphs. It uses state-of-the-art **Graph RAG (Retrieval-Augmented Generation)** to answer architectural questions, predict PR risk scores, generate living documentation, and track technical debt—without ever sending your sensitive source code to third-party cloud APIs.
-Built using **Java 21, Spring Boot 3.x, Neo4j, pgvector, Apache Kafka, and Ollama**, it provides an enterprise-ready, completely air-gapped developer tool.
-## The Problem It Solves
-As engineering organizations scale past 10 microservices or several hundred thousand lines of code, they hit systemic, silent friction points:
- * **Invisible Blast Radii:** Changing a core library or model causes silent, cascading failures downstream.
- * **Knowledge Silos:** Onboarding new engineers takes weeks spent manually tracing execution flows.
- * **Stale Documentation:** Architecture documentation degrades the moment code is merged.
- * **Hidden Technical Debt:** Highly coupled "hotspot" classes remain invisible until they cause an outage.
-FlowSense Pro brings these relationships into the light, providing deterministic graph tracing paired with LLM reasoning.
-### Direct API Interaction Examples
-**Indexing a Microservice:**
-```http
-POST /api/projects/index
+## Phase 1 — Foundation (Weeks 1–4)
+
+**What's built:** AST Parser → Neo4j Knowledge Graph → Semantic Search API
+
+---
+
+## Quick Start (10 minutes)
+
+### Prerequisites
+- Java 21
+- Maven 3.8+
+- Docker Desktop
+- IntelliJ IDEA
+
+---
+
+### Step 1 — Install Ollama (FREE local AI)
+
+Download from: https://ollama.com/download/windows
+
+Open PowerShell and run:
+```powershell
+# Pull the models (do this tonight — takes time based on internet speed)
+ollama pull codellama:13b       # 7.4GB — code intelligence model
+ollama pull nomic-embed-text    # 274MB — embeddings model
+
+# Start Ollama server
+ollama serve
+
+# Verify it's running
+curl http://localhost:11434/api/tags
+```
+
+---
+
+### Step 2 — Start Infrastructure
+
+```powershell
+# Clone/open this project in IntelliJ
+# Then in terminal at project root:
+
+docker-compose up -d
+
+# Verify everything is running:
+docker ps
+
+# You should see:
+# flowsense-neo4j    → running
+# flowsense-postgres → running
+# flowsense-redis    → running
+```
+
+**Open Neo4j Browser:** http://localhost:7474
+- Username: `neo4j`
+- Password: `flowsense123`
+
+---
+
+### Step 3 — Run FlowSense
+
+```powershell
+ollama serve
+mvn spring-boot:run
+```
+
+Watch the startup logs — you'll see:
+```
+✅ PostgreSQL + pgvector: Connected
+✅ Neo4j: Connected
+✅ Redis: Connected
+✅ Ollama (nomic-embed-text): Connected and running
+✅ All systems operational!
+```
+
+---
+
+### Step 4 — Index Your First Project
+
+Open **Postman** and make this request:
+
+```
+POST http://localhost:8080/api/projects/index
 Content-Type: application/json
 
-{ 
-  "projectId": "payments-service", 
-  "projectPath": "C:/projects/payments" 
+{
+  "projectId": "myproject",
+  "projectPath": "C:/path/to/any/java/project"
 }
+```
 
-→ RESPONSE: 47 files processed · 284 methods indexed · graph built in 3.2s
+Response:
+```json
+{
+  "projectId": "myproject",
+  "status": "SUCCESS",
+  "filesProcessed": 47,
+  "classesFound": 52,
+  "methodsFound": 284,
+  "nodesCreated": 52,
+  "relationshipsCreated": 198,
+  "embeddingsGenerated": 284
+}
+```
+
+---
+
+### Step 5 — Query the Graph
 
 ```
-**Context-Aware Structural Querying:**
-```http
-POST /api/query/payments-service
-Content-Type: application/json
+# Get all dependencies of a class
+GET http://localhost:8080/api/graph/myproject/dependencies?class=PaymentService
 
-{ "question": "What breaks if I change PaymentService?" }
+# Find callers of a method
+GET http://localhost:8080/api/graph/myproject/callers?class=PaymentService&method=processPayment
 
-→ RESPONSE: "PaymentService [PaymentService.java:1] is directly depended on by
-   OrderService [OrderService.java:15] and CheckoutController [CheckoutController.java:42]. 
-   Transitively, NotificationService and AuditService are also affected — total impact score 68/100.
-   Changes here require integration testing of at least 4 services."
+# Trace full execution chain
+GET http://localhost:8080/api/graph/myproject/trace?method=checkout
 
+# Find circular dependencies
+GET http://localhost:8080/api/graph/myproject/circular-deps
+
+# Find dead code
+GET http://localhost:8080/api/graph/myproject/dead-code
+
+# Semantic search
+GET http://localhost:8080/api/search/myproject?q=payment+processing
+
+# Project statistics
+GET http://localhost:8080/api/graph/myproject/stats
 ```
-## System Architecture
-FlowSense Pro combines structural abstract syntax trees (AST) with deep vector embeddings to construct a dual-engine knowledge base.
+
+---
+
+### Step 6 — Explore in Neo4j Browser
+
+Go to http://localhost:7474 and run these Cypher queries:
+
+```cypher
+// See all classes
+MATCH (c:Class) RETURN c LIMIT 25
+
+// See the dependency graph
+MATCH (c:Class)-[r]->(d:Class) RETURN c, r, d LIMIT 50
+
+// Find what depends on PaymentService
+MATCH (c:Class)-[:HAS_METHOD]->(:Method)-[:CALLS]->(:Method)
+      <-[:HAS_METHOD]-(target:Class)
+WHERE target.className = 'PaymentService'
+RETURN c
+
+// Find most called methods
+MATCH (:Method)-[:CALLS]->(m:Method)
+RETURN m.className + '.' + m.methodName AS method, count(*) AS callCount
+ORDER BY callCount DESC LIMIT 20
+```
+
+---
+
+## Architecture (Phase 1)
+
 ```
 Java Project
      │
      ▼
-┌─────────────────────────────────────────────────────────┐
-│                  Spring Boot Core Engine                 │
-│                                                         │
-│  JavaParser AST  →  CodebaseScanner  →  CodeGraphBuilder│
-│  Spring AI       →  GraphRAGEngine   →  LLM Orchestrator│
-│  Spring Batch    →  IndexingJob      →  EmbeddingService │
-│  Spring Kafka    →  PREventConsumer  →  PRAnalysisService│
-└──────┬─────────────────┬──────────────────┬─────────────┘
-       │                 │                  │
-  ┌────▼────┐    ┌───────▼──────┐   ┌───────▼───────┐
-  │  Neo4j  │    │   pgvector   │   │  PostgreSQL   │
-  │  Graph  │    │  Embeddings  │   │   Metadata    │
-  │  DB     │    │  2M+ vectors │   │   Incidents   │
-  └────┬────┘    └───────┬──────┘   └───────┬───────┘
-       └─────────────────┴──────────────────┘
-                         │
-              ┌──────────▼───────────┐
-              │    Graph RAG Engine   │
-              │                      │
-              │  1. Decompose query  │
-              │  2. Traverse Neo4j   │
-              │  3. Search pgvector  │
-              │  4. Merge context    │
-              │  5. Generate answer  │
-              └──────────┬───────────┘
-                         │
-              ┌──────────▼───────────┐
-              │   HallucinationGuard │ ← Validates structural integrity
-              └──────────┬───────────┘
-                         │
-                  Streaming Answer
-               with [file:line] citations
-
+CodebaseScanner          ← walks all .java files
+     │
+     ▼
+ASTParser                ← JavaParser extracts classes, methods, calls
+     │
+     ├──────────────────────────────────┐
+     ▼                                  ▼
+CodeGraphBuilder                  EmbeddingService
+(Neo4j Knowledge Graph)           (pgvector embeddings)
+     │                                  │
+     ▼                                  ▼
+ClassNode + MethodNode            nomic-embed-text (Ollama)
++ CALLS relationships             vector similarity search
+     │                                  │
+     └──────────────┬───────────────────┘
+                    ▼
+             REST API (Spring Boot)
+             + Redis Cache
 ```
 
+---
 
-
-## Core Features
-### 🏗️ Phase 1 — Foundation (Structural Indexing)
- * **AST Parser:** Utilizes JavaParser to extract granular syntactic data (classes, methods, signatures, annotations, call expressions) conforming to Java 21 features.
- * **Knowledge Graph Construction:** Maps entities out into a native **Neo4j** graph of nodes (Class, Method) connected by rich directional relationships (CALLS, EXTENDS, IMPLEMENTS).
- * **Method-Level Vectorization:** Generates isolated code embeddings using local nomic-embed-text models via **Ollama**, indexed natively inside **PostgreSQL (pgvector)** with HNSW indexes.
- * **Deterministic & Semantic Exploration:** Runs complex Cypher-based call-chain tracing and circular-dependency checks side-by-side with semantic similarity searches.
-### 🧠 Phase 2 — Intelligence (Graph RAG Engine)
- * **Hybrid RAG Pipeline:** Combines explicit Neo4j structural graph traversals with pgvector similarity searches to inject precise architectural context into the LLM system prompt.
- * **HallucinationGuard:** Intercepts LLM completions, verifying all output class names and relationships against actual Neo4j records before streaming to the client.
- * **Event-Driven PR Profiling:** Consumes GitHub webhooks asynchronously via an internal **Apache Kafka** pipeline to rate PR risk based on cyclomatic complexity variations, code coupling, and past production incident vectors.
-### 📊 Phase 3 — Production Systems
- * **Living Documentation Engine:** Auto-compiles markdown files and embeds self-updating **Mermaid.js** topology diagrams detailing cross-service dependencies.
- * **Technical Debt & Hotspot Dashboards:** Computes continuous complexity metrics using a weighted algorithm:
-   
- * **Enterprise Operations:** Features chunk-based Spring Batch routines processing massive multi-gigabyte repositories smoothly, backed by robust Prometheus metrics and a native Grafana observability stack.
 ## Tech Stack
-| Layer | Technology | Rationale |
+
+| Technology | Purpose | Why |
 |---|---|---|
-| **Framework Engine** | Spring Boot 3.x / Java 21 | High-throughput baseline runtime, modern syntax support. |
-| **AI Abstraction** | Spring AI & LangChain4j | Decoupled model orchestration allowing seamless model migration. |
-| **Local Inference** | Ollama (codellama:13b) | Enterprise privacy; execution runs zero external network bills. |
-| **Vector Indexing** | PostgreSQL 16 + pgvector | HNSW indexes kept alongside standard operational tables. |
-| **Graph DB** | Neo4j Enterprise (Local) | Graph queries resolve natively in O(\log n) vs O(n^2) SQL joins. |
-| **Asynchronous Bus** | Apache Kafka | Isolates heavy computing operations from HTTP webhook threads. |
-| **Distributed Cache** | Redis 7 | Buffers embeddings, repetitive Cypher runs, and session memory. |
-## Quick Start
-### 1. Provision Local AI Models
-Ensure Ollama is installed and active on your system.
+| Spring Boot 3.x | Core framework | Industry standard |
+| JavaParser | AST parsing | Handles generics, lambdas correctly |
+| Neo4j | Graph database | Code IS a graph — native traversal |
+| pgvector | Vector embeddings | Runs in PostgreSQL — no extra infra |
+| Ollama (nomic-embed-text) | Embeddings | FREE, local, no API key |
+| Redis | Caching | Avoid recomputing same embeddings |
+| Spring AI | LLM abstraction | Swap models with one config line |
+
+---
+
+## Running Tests
+
 ```powershell
-ollama pull codellama:13b
-ollama pull nomic-embed-text
+# Run unit tests (no Docker needed)
+mvn test -Dtest=ASTParserTest
 
+# All tests
+mvn test
 ```
-### 2. Stand Up Infrastructure Stacks
-```powershell
-git clone https://github.com/yourusername/flowsense-pro
-cd flowsense-pro
-docker-compose up -d
 
-```
-| Management Console | URL Endpoint | Default Credentials |
-|---|---|---|
-| **Neo4j Browser** | http://localhost:7474 | neo4j / password123 |
-| **Kafka UI** | http://localhost:8090 | *None Required* |
-| **Grafana Metrics** | http://localhost:3000 | admin / admin |
-| **FlowSense App** | http://localhost:8080 | *Actuator Enabled* |
-### 3. Build & Run Application Core
-```powershell
-ollama serve
-mvn spring-boot:run
+---
 
-```
-## API Reference
-### Project Indexing
-```bash
-POST /api/projects/index
-Content-Type: application/json
+## Coming in Phase 2 (Weeks 5–8)
 
-{
-  "projectId": "core-ledger",
-  "projectPath": "/absolute/path/to/java/source"
-}
+- Natural language Q&A with Graph RAG
+- "What happens when /checkout is called?" → full call chain answer
+- GitHub webhook integration
+- PR change impact prediction with risk score
 
-```
-### Structural Queries (Sample Endpoints)
- * GET /api/graph/{projectId}/dependencies?class=ClassName — Identify dependency parents.
- * GET /api/graph/{projectId}/circular-deps — Pinpoint circular initialization paths.
- * GET /api/graph/{projectId}/dead-code — Locate unreachable structural methods.
-### Graph RAG Q&A Interface
-```bash
-POST /api/query/{projectId}/stream
-Content-Type: application/json
+---
 
-{
-  "question": "Trace the execution pipeline from CheckoutController down to DB writes.",
-  "sessionId": "usr-session-991"
-}
+## Interview Story
 
-```
-## Project Structure
-```
-flowsense-pro/
-├── src/main/java/com/flowsense/
-│   ├── parser/         ← JavaParser AST extraction & project scanning
-│   ├── graph/          ← Neo4j entity modeling and Cypher repositories
-│   ├── embedding/      ← Ollama pgvector ingestion layer
-│   ├── ai/             ← GraphRAG implementation & HallucinationGuard
-│   ├── webhook/        ← Signature-verified GitHub event handlers
-│   ├── kafka/          ← Async pipelines and ingestion message brokers
-│   ├── prediction/     ← Code change risk metric scoring calculators
-│   ├── documentation/  ← Markdown living docs & Mermaid generation
-│   ├── dashboard/      ← Technical debt analysis engines
-│   └── batch/          ← Spring Batch restartable processing pipelines
-├── docker/             ← Bootstrapping scripts, init.sql schema files
-├── docker-compose.yml  ← Orchestration blueprints for local runtime
-└── README.md
-
-```
-## Why This Architecture?
-### Why Neo4j Over Relational DBs for Code Trees?
-Abstract syntax trees and cross-module tracking form highly complex, unpredictable networks. Performing deep transitive or cascading dependency evaluations via standard SQL requires nested relational tables and intensive, multi-layered JOIN queries that scale exponentially in performance costs (O(n^2)). Neo4j processes these relationships as explicit micro-pointers, handling deep 5-hop code traversals effortlessly in under 100 milliseconds (O(\log n)).
-### Why Graph RAG Over Standard Vector RAG?
-Standard RAG relies entirely on semantic or textual match similarities. If a developer asks *"What breaks if I adjust the access modifiers inside SecurityConfig?"*, a standard vector lookup simply fetches files containing words similar to "SecurityConfig". It completely misses downstream classes that rely structurally on that component but use different vocabularies. **Graph RAG bridges this gap:** it finds the exact structural code nodes via explicit Neo4j relationship maps and merges them with semantic vector matches to provide highly accurate, contextual source tracking.
-## Roadmap
- * [ ] **IDE Native Extension:** Integration panels inside VS Code and IntelliJ IDEA.
- * [ ] **Multi-Language Adaptability:** Support for Python, Go, and TypeScript syntax parsers.
- * [ ] **Git Blame Integration:** Mapping organizational code ownership directly against commit patterns and structural graphs.
-
+> "I built FlowSense Pro — a codebase intelligence engine. In Phase 1,
+> I built an AST parser using JavaParser that extracts every class,
+> method, and method call from a Java project and stores it in Neo4j
+> as a knowledge graph. The key insight was that code IS a graph —
+> classes call methods on other classes, creating directed edges.
+> Neo4j traverses this in O(log n) whereas a relational JOIN would
+> be O(n²) for deep dependency chains. I also store semantic embeddings
+> of every method using Ollama's nomic-embed-text model in pgvector
+> for natural language search across the codebase."
