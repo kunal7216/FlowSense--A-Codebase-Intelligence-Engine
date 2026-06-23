@@ -6,7 +6,6 @@
 > production incident probability before code merges."*
 
 ---
-
 ## Phase 1 — Foundation (Weeks 1–4)
 
 **What's built:** AST Parser → Neo4j Knowledge Graph → Semantic Search API
