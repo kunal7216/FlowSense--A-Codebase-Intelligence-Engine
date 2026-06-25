@@ -1,4 +1,4 @@
-# FlowSense Pro 🧠
+# FlowSense Pro 
 ### AI-Powered Codebase Intelligence Engine
 
 > *"I built a system that parses any Java codebase into a knowledge graph,
