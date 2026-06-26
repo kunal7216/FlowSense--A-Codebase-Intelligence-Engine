@@ -227,14 +227,3 @@ mvn test
 
 ---
 
-## Interview Story
-
-> "I built FlowSense Pro — a codebase intelligence engine. In Phase 1,
-> I built an AST parser using JavaParser that extracts every class,
-> method, and method call from a Java project and stores it in Neo4j
-> as a knowledge graph. The key insight was that code IS a graph —
-> classes call methods on other classes, creating directed edges.
-> Neo4j traverses this in O(log n) whereas a relational JOIN would
-> be O(n²) for deep dependency chains. I also store semantic embeddings
-> of every method using Ollama's nomic-embed-text model in pgvector
-> for natural language search across the codebase."
