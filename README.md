@@ -226,4 +226,3 @@ mvn test
 - PR change impact prediction with risk score
 
 ---
-
