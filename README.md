@@ -224,5 +224,4 @@ mvn test
 - "What happens when /checkout is called?" → full call chain answer
 - GitHub webhook integration
 - PR change impact prediction with risk score
-
 ---
