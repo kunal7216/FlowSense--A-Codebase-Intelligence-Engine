@@ -57,7 +57,6 @@ docker ps
 # flowsense-postgres → running
 # flowsense-redis    → running
 ```
-
 **Open Neo4j Browser:** http://localhost:7474
 - Username: `neo4j`
 - Password: `flowsense123`
