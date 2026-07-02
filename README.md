@@ -46,7 +46,6 @@ curl http://localhost:11434/api/tags
 ```powershell
 # Clone/open this project in IntelliJ
 # Then in terminal at project root:
-
 docker-compose up -d
 
 # Verify everything is running:
