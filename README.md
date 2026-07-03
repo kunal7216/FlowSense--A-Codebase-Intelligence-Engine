@@ -1,4 +1,4 @@
-# FlowSense Pro 🧠
+# FlowSense Pro 
 ### AI-Powered Codebase Intelligence Engine
 
 > *"I built a system that parses any Java codebase into a knowledge graph,
@@ -6,7 +6,6 @@
 > production incident probability before code merges."*
 
 ---
-
 ## Phase 1 — Foundation (Weeks 1–4)
 
 **What's built:** AST Parser → Neo4j Knowledge Graph → Semantic Search API
@@ -47,7 +46,6 @@ curl http://localhost:11434/api/tags
 ```powershell
 # Clone/open this project in IntelliJ
 # Then in terminal at project root:
-
 docker-compose up -d
 
 # Verify everything is running:
@@ -58,7 +56,6 @@ docker ps
 # flowsense-postgres → running
 # flowsense-redis    → running
 ```
-
 **Open Neo4j Browser:** http://localhost:7474
 - Username: `neo4j`
 - Password: `flowsense123`
@@ -225,17 +222,4 @@ mvn test
 - "What happens when /checkout is called?" → full call chain answer
 - GitHub webhook integration
 - PR change impact prediction with risk score
-
 ---
-
-## Interview Story
-
-> "I built FlowSense Pro — a codebase intelligence engine. In Phase 1,
-> I built an AST parser using JavaParser that extracts every class,
-> method, and method call from a Java project and stores it in Neo4j
-> as a knowledge graph. The key insight was that code IS a graph —
-> classes call methods on other classes, creating directed edges.
-> Neo4j traverses this in O(log n) whereas a relational JOIN would
-> be O(n²) for deep dependency chains. I also store semantic embeddings
-> of every method using Ollama's nomic-embed-text model in pgvector
-> for natural language search across the codebase."
