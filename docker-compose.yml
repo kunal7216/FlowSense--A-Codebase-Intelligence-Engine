@@ -1,13 +1,17 @@
 version: '3.8'
 
-# FlowSense Pro - Phase 2 Infrastructure
-# Adds Kafka + Zookeeper to Phase 1 stack
-# Run: docker-compose up -d
-# Stop: docker-compose down
+# FlowSense Pro — Complete Stack (All 3 Phases)
+# Run:   docker-compose up -d
+# Stop:  docker-compose down
+#
+# Neo4j Browser: http://localhost:7474   (neo4j / flowsense123)
+# Kafka UI:      http://localhost:8090
+# Grafana:       http://localhost:3000   (admin / admin)
+# Prometheus:    http://localhost:9090
 
 services:
 
-  # ── Neo4j ─────────────────────────────────────────────────
+  # ── Neo4j Graph Database ──────────────────────────────────
   neo4j:
     image: neo4j:5.18.0
     container_name: flowsense-neo4j
@@ -17,6 +21,7 @@ services:
     environment:
       NEO4J_AUTH: neo4j/flowsense123
       NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_dbms_security_procedures_unrestricted: apoc.*
     volumes:
       - neo4j_data:/data
       - neo4j_logs:/logs
@@ -66,7 +71,7 @@ services:
     networks:
       - flowsense-net
 
-  # ── Zookeeper (required by Kafka) ─────────────────────────
+  # ── Zookeeper (Kafka dependency) ──────────────────────────
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.0
     container_name: flowsense-zookeeper
@@ -100,7 +105,7 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
-      KAFKA_LOG_RETENTION_HOURS: 168        # Keep events 7 days
+      KAFKA_LOG_RETENTION_HOURS: 168
     volumes:
       - kafka_data:/var/lib/kafka/data
     healthcheck:
@@ -111,22 +116,56 @@ services:
     networks:
       - flowsense-net
 
-  # ── Kafka UI (dev tool - visualize topics) ────────────────
+  # ── Kafka UI (visual topic explorer) ──────────────────────
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: flowsense-kafka-ui
     depends_on:
       - kafka
     ports:
-      - "8090:8080"     # Open http://localhost:8090 to see Kafka topics
+      - "8090:8080"
     environment:
       KAFKA_CLUSTERS_0_NAME: flowsense
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
     networks:
       - flowsense-net
 
-# NOTE: Ollama runs NATIVELY on Windows (not in Docker)
-# ollama serve must be running separately
+  # ── Prometheus ────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: flowsense-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - flowsense-net
+
+  # ── Grafana ───────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: flowsense-grafana
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: false
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - flowsense-net
+
+# NOTE: Ollama runs NATIVELY on Windows (not in Docker) for best performance.
+# Install: https://ollama.com/download/windows
+# Then:    ollama pull codellama:13b
+#          ollama pull nomic-embed-text
+#          ollama serve
 
 volumes:
   neo4j_data:
@@ -135,6 +174,8 @@ volumes:
   redis_data:
   zookeeper_data:
   kafka_data:
+  prometheus_data:
+  grafana_data:
 
 networks:
   flowsense-net:
