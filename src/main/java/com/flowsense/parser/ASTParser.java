@@ -58,9 +58,8 @@ public class ASTParser {
                 return extractClasses(cu, filePath.toString());
             } else {
                 // Log parse problems but don't crash — some files may have issues
-                parseResult.getProblems().forEach(problem ->
-                    log.warn("Parse issue in {}: {}", filePath.getFileName(), problem.getMessage())
-                );
+                parseResult.getProblems().forEach(
+                        problem -> log.warn("Parse issue in {}: {}", filePath.getFileName(), problem.getMessage()));
                 return Collections.emptyList();
             }
 
@@ -95,13 +94,13 @@ public class ASTParser {
 
         // Get package name
         String packageName = cu.getPackageDeclaration()
-            .map(pd -> pd.getName().toString())
-            .orElse("");
+                .map(pd -> pd.getName().toString())
+                .orElse("");
 
         // Get all imports
         List<String> imports = cu.getImports().stream()
-            .map(i -> i.getName().toString())
-            .collect(Collectors.toList());
+                .map(i -> i.getName().toString())
+                .collect(Collectors.toList());
 
         // Process each type declaration (class, interface, enum)
         cu.getTypes().forEach(typeDecl -> {
@@ -115,9 +114,9 @@ public class ASTParser {
     }
 
     private ParsedClass extractClass(TypeDeclaration<?> typeDecl,
-                                     String packageName,
-                                     List<String> imports,
-                                     String filePath) {
+            String packageName,
+            List<String> imports,
+            String filePath) {
         try {
             String className = typeDecl.getNameAsString();
 
@@ -129,10 +128,8 @@ public class ASTParser {
             List<String> interfaces = new ArrayList<>();
 
             if (typeDecl instanceof ClassOrInterfaceDeclaration classDecl) {
-                classDecl.getExtendedTypes().forEach(t ->
-                    superClasses.add(t.getNameAsString()));
-                classDecl.getImplementedTypes().forEach(t ->
-                    interfaces.add(t.getNameAsString()));
+                classDecl.getExtendedTypes().forEach(t -> superClasses.add(t.getNameAsString()));
+                classDecl.getImplementedTypes().forEach(t -> interfaces.add(t.getNameAsString()));
             }
 
             // Extract annotations on class
@@ -146,27 +143,27 @@ public class ASTParser {
 
             // Build position info
             int lineStart = typeDecl.getBegin()
-                .map(p -> p.line).orElse(0);
+                    .map(p -> p.line).orElse(0);
             int lineEnd = typeDecl.getEnd()
-                .map(p -> p.line).orElse(0);
+                    .map(p -> p.line).orElse(0);
 
             return ParsedClass.builder()
-                .className(className)
-                .packageName(packageName)
-                .fullyQualifiedName(packageName.isBlank() ? className : packageName + "." + className)
-                .filePath(filePath)
-                .classType(classType)
-                .isAbstract(typeDecl instanceof ClassOrInterfaceDeclaration c && c.isAbstract())
-                .imports(imports)
-                .superClasses(superClasses)
-                .interfaces(interfaces)
-                .annotations(annotations)
-                .fields(fields)
-                .methods(methods)
-                .lineStart(lineStart)
-                .lineEnd(lineEnd)
-                .totalLines(lineEnd - lineStart + 1)
-                .build();
+                    .className(className)
+                    .packageName(packageName)
+                    .fullyQualifiedName(packageName.isBlank() ? className : packageName + "." + className)
+                    .filePath(filePath)
+                    .classType(classType)
+                    .isAbstract(typeDecl instanceof ClassOrInterfaceDeclaration c && c.isAbstract())
+                    .imports(imports)
+                    .superClasses(superClasses)
+                    .interfaces(interfaces)
+                    .annotations(annotations)
+                    .fields(fields)
+                    .methods(methods)
+                    .lineStart(lineStart)
+                    .lineEnd(lineEnd)
+                    .totalLines(lineEnd - lineStart + 1)
+                    .build();
 
         } catch (Exception e) {
             log.error("Error extracting class from {}: {}", filePath, e.getMessage());
@@ -187,53 +184,53 @@ public class ASTParser {
 
                 // Get source code of method body
                 String sourceCode = method.getBody()
-                    .map(BlockStmt::toString)
-                    .orElse("");
+                        .map(BlockStmt::toString)
+                        .orElse("");
 
                 // Extract annotations
                 List<String> annotations = method.getAnnotations().stream()
-                    .map(a -> "@" + a.getNameAsString())
-                    .collect(Collectors.toList());
+                        .map(a -> "@" + a.getNameAsString())
+                        .collect(Collectors.toList());
 
                 // Extract parameter info
                 List<String> parameters = method.getParameters().stream()
-                    .map(p -> p.getTypeAsString() + " " + p.getNameAsString())
-                    .collect(Collectors.toList());
+                        .map(p -> p.getTypeAsString() + " " + p.getNameAsString())
+                        .collect(Collectors.toList());
 
                 List<String> parameterTypes = method.getParameters().stream()
-                    .map(p -> p.getTypeAsString())
-                    .collect(Collectors.toList());
+                        .map(p -> p.getTypeAsString())
+                        .collect(Collectors.toList());
 
                 // Calculate cyclomatic complexity (simple version)
                 int complexity = calculateComplexity(method);
 
                 ParsedMethod parsedMethod = ParsedMethod.builder()
-                    .methodName(method.getNameAsString())
-                    .className(className)
-                    .returnType(method.getTypeAsString())
-                    .signature(signature)
-                    .sourceCode(sourceCode)
-                    .javadoc(method.getJavadocComment()
-                        .map(c -> c.getContent()).orElse(""))
-                    .parameters(parameters)
-                    .parameterTypes(parameterTypes)
-                    .annotations(annotations)
-                    .methodCalls(methodCalls)
-                    .isPublic(method.isPublic())
-                    .isPrivate(method.isPrivate())
-                    .isStatic(method.isStatic())
-                    .isAbstract(method.isAbstract())
-                    .isOverride(annotations.contains("@Override"))
-                    .lineStart(method.getBegin().map(p -> p.line).orElse(0))
-                    .lineEnd(method.getEnd().map(p -> p.line).orElse(0))
-                    .cyclomaticComplexity(complexity)
-                    .build();
+                        .methodName(method.getNameAsString())
+                        .className(className)
+                        .returnType(method.getTypeAsString())
+                        .signature(signature)
+                        .sourceCode(sourceCode)
+                        .javadoc(method.getJavadocComment()
+                                .map(c -> c.getContent()).orElse(""))
+                        .parameters(parameters)
+                        .parameterTypes(parameterTypes)
+                        .annotations(annotations)
+                        .methodCalls(methodCalls)
+                        .isPublic(method.isPublic())
+                        .isPrivate(method.isPrivate())
+                        .isStatic(method.isStatic())
+                        .isAbstract(method.isAbstract())
+                        .isOverride(annotations.contains("@Override"))
+                        .lineStart(method.getBegin().map(p -> p.line).orElse(0))
+                        .lineEnd(method.getEnd().map(p -> p.line).orElse(0))
+                        .cyclomaticComplexity(complexity)
+                        .build();
 
                 methods.add(parsedMethod);
 
             } catch (Exception e) {
                 log.warn("Could not parse method {} in {}: {}",
-                    method.getNameAsString(), className, e.getMessage());
+                        method.getNameAsString(), className, e.getMessage());
             }
         });
 
@@ -259,8 +256,8 @@ public class ASTParser {
 
                 try {
                     String calleeObject = callExpr.getScope()
-                        .map(Expression::toString)
-                        .orElse("this");
+                            .map(Expression::toString)
+                            .orElse("this");
 
                     String calleeMethod = callExpr.getNameAsString();
 
@@ -269,13 +266,13 @@ public class ASTParser {
                     String calleeClass = resolveCalleeClass(callExpr, calleeObject);
 
                     ParsedMethod.MethodCall methodCall = ParsedMethod.MethodCall.builder()
-                        .callerClass(className)
-                        .callerMethod(method.getNameAsString())
-                        .calleeClass(calleeClass)
-                        .calleeMethod(calleeMethod)
-                        .calleeObject(calleeObject)
-                        .lineNumber(callExpr.getBegin().map(p -> p.line).orElse(0))
-                        .build();
+                            .callerClass(className)
+                            .callerMethod(method.getNameAsString())
+                            .calleeClass(calleeClass)
+                            .calleeMethod(calleeMethod)
+                            .calleeObject(calleeObject)
+                            .lineNumber(callExpr.getBegin().map(p -> p.line).orElse(0))
+                            .build();
 
                     calls.add(methodCall);
 
@@ -293,20 +290,20 @@ public class ASTParser {
 
         typeDecl.getFields().forEach(field -> {
             String annotation = field.getAnnotations().stream()
-                .findFirst()
-                .map(a -> "@" + a.getNameAsString())
-                .orElse("");
+                    .findFirst()
+                    .map(a -> "@" + a.getNameAsString())
+                    .orElse("");
 
             field.getVariables().forEach(var -> {
                 fields.add(ParsedField.builder()
-                    .fieldName(var.getNameAsString())
-                    .fieldType(field.getElementType().toString())
-                    .isPrivate(field.isPrivate())
-                    .isStatic(field.isStatic())
-                    .isFinal(field.isFinal())
-                    .annotation(annotation)
-                    .lineNumber(field.getBegin().map(p -> p.line).orElse(0))
-                    .build());
+                        .fieldName(var.getNameAsString())
+                        .fieldType(field.getElementType().toString())
+                        .isPrivate(field.isPrivate())
+                        .isStatic(field.isStatic())
+                        .isFinal(field.isFinal())
+                        .annotation(annotation)
+                        .lineNumber(field.getBegin().map(p -> p.line).orElse(0))
+                        .build());
             });
         });
 
@@ -315,34 +312,39 @@ public class ASTParser {
 
     private List<ParsedAnnotation> extractAnnotations(TypeDeclaration<?> typeDecl) {
         return typeDecl.getAnnotations().stream()
-            .map(annotation -> ParsedAnnotation.builder()
-                .name(annotation.getNameAsString())
-                .fullName(annotation.getNameAsString())
-                .build())
-            .collect(Collectors.toList());
+                .map(annotation -> ParsedAnnotation.builder()
+                        .name(annotation.getNameAsString())
+                        .fullName(annotation.getNameAsString())
+                        .build())
+                .collect(Collectors.toList());
     }
 
     private ParsedClass.ClassType determineClassType(TypeDeclaration<?> typeDecl) {
-        if (typeDecl instanceof EnumDeclaration) return ParsedClass.ClassType.ENUM;
-        if (typeDecl instanceof RecordDeclaration) return ParsedClass.ClassType.RECORD;
+        if (typeDecl instanceof EnumDeclaration)
+            return ParsedClass.ClassType.ENUM;
+        if (typeDecl instanceof RecordDeclaration)
+            return ParsedClass.ClassType.RECORD;
         if (typeDecl instanceof ClassOrInterfaceDeclaration classDecl) {
-            if (classDecl.isInterface()) return ParsedClass.ClassType.INTERFACE;
-            if (classDecl.isAbstract()) return ParsedClass.ClassType.ABSTRACT_CLASS;
+            if (classDecl.isInterface())
+                return ParsedClass.ClassType.INTERFACE;
+            if (classDecl.isAbstract())
+                return ParsedClass.ClassType.ABSTRACT_CLASS;
         }
         return ParsedClass.ClassType.CLASS;
     }
 
     private String buildSignature(MethodDeclaration method) {
         String params = method.getParameters().stream()
-            .map(p -> p.getTypeAsString() + " " + p.getNameAsString())
-            .collect(Collectors.joining(", "));
+                .map(p -> p.getTypeAsString() + " " + p.getNameAsString())
+                .collect(Collectors.joining(", "));
         return method.getNameAsString() + "(" + params + "): " + method.getTypeAsString();
     }
 
     private String resolveCalleeClass(MethodCallExpr callExpr, String calleeObject) {
         // Simple heuristic-based resolution
         // In Phase 2 we'll use full symbol solver
-        if (calleeObject.equals("this") || calleeObject.isBlank()) return null;
+        if (calleeObject.equals("this") || calleeObject.isBlank())
+            return null;
 
         // Check for common patterns
         if (Character.isUpperCase(calleeObject.charAt(0))) {
@@ -357,22 +359,44 @@ public class ASTParser {
      * Counts decision points: if, for, while, case, catch, &&, ||
      */
     private int calculateComplexity(MethodDeclaration method) {
-        final int[] complexity = {1}; // Base complexity = 1
+        final int[] complexity = { 1 }; // Base complexity = 1
 
         method.accept(new VoidVisitorAdapter<Void>() {
-            @Override public void visit(com.github.javaparser.ast.stmt.IfStmt n, Void a)
-                { complexity[0]++; super.visit(n, a); }
-            @Override public void visit(com.github.javaparser.ast.stmt.ForStmt n, Void a)
-                { complexity[0]++; super.visit(n, a); }
-            @Override public void visit(com.github.javaparser.ast.stmt.WhileStmt n, Void a)
-                { complexity[0]++; super.visit(n, a); }
-            @Override public void visit(com.github.javaparser.ast.stmt.SwitchEntry n, Void a)
-                { complexity[0]++; super.visit(n, a); }
-            @Override public void visit(com.github.javaparser.ast.stmt.CatchClause n, Void a)
-                { complexity[0]++; super.visit(n, a); }
-            @Override public void visit(BinaryExpr n, Void a) {
+            @Override
+            public void visit(com.github.javaparser.ast.stmt.IfStmt n, Void a) {
+                complexity[0]++;
+                super.visit(n, a);
+            }
+
+            @Override
+            public void visit(com.github.javaparser.ast.stmt.ForStmt n, Void a) {
+                complexity[0]++;
+                super.visit(n, a);
+            }
+
+            @Override
+            public void visit(com.github.javaparser.ast.stmt.WhileStmt n, Void a) {
+                complexity[0]++;
+                super.visit(n, a);
+            }
+
+            @Override
+            public void visit(com.github.javaparser.ast.stmt.SwitchEntry n, Void a) {
+                complexity[0]++;
+                super.visit(n, a);
+            }
+
+            @Override
+            public void visit(com.github.javaparser.ast.stmt.CatchClause n, Void a) {
+                complexity[0]++;
+                super.visit(n, a);
+            }
+
+            @Override
+            public void visit(BinaryExpr n, Void a) {
                 if (n.getOperator() == BinaryExpr.Operator.AND ||
-                    n.getOperator() == BinaryExpr.Operator.OR) complexity[0]++;
+                        n.getOperator() == BinaryExpr.Operator.OR)
+                    complexity[0]++;
                 super.visit(n, a);
             }
         }, null);
