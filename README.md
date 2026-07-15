@@ -93,7 +93,6 @@ mvn clean compile
 ```powershell
 mvn test
 ```
-
 Tests run entirely offline — no Neo4j, Postgres, or Ollama required — and cover parsing, risk scoring, drift detection, and debt scoring.
 
 ### 3. Pull the required AI models
