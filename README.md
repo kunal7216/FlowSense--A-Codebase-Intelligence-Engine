@@ -116,7 +116,6 @@ flowsense-complete/
 > **New to Java projects?** `pom.xml` is like a `package.json` (Node.js) or `requirements.txt` (Python) — it lists everything the project depends on, and Maven uses it to build the project.
 
 ## Prerequisites
-
 Before you start, make sure you have the following installed. Each one links to what it is and why it's needed.
 
 | Requirement | Why you need it |
