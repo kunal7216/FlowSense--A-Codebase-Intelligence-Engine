@@ -7,7 +7,6 @@ Think of it like this: instead of digging through thousands of files to understa
 This README is written to be understandable even if you're new to some of the tools involved (Docker, Neo4j, vector databases, LLMs, etc.). Every technical term is explained the first time it's used.
 
 ---
-
 ## Table of Contents
 
 1. [What Problem Does FlowSense Solve?](#what-problem-does-flowsense-solve)
