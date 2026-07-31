@@ -146,7 +146,6 @@ If any of these commands fail, install that tool before continuing.
 cd flowsense-complete
 mvn clean compile
 ```
-
 This downloads dependencies and compiles the Java source code. The first run may take a few minutes.
 
 ### Step 2 — Run the test suite (optional but recommended)
