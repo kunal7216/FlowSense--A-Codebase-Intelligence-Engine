@@ -29,6 +29,7 @@ This README is written to be understandable even if you're new to some of the to
 
 Large Java codebases are hard to reason about. New developers spend weeks just figuring out how the code fits together. Reviewers approve pull requests without fully knowing what else in the system might be affected. Documentation is written once and never updated, so it slowly becomes wrong.
 
+
 FlowSense tackles all three problems by building a live, queryable model of your codebase and layering AI on top of it:
 
 - **Understanding code** → ask questions in plain English instead of reading every file.
