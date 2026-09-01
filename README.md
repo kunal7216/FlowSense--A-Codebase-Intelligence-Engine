@@ -56,6 +56,7 @@ Here's what each feature means in practice:
 
 ## How It Works, In Plain English
 
+
 FlowSense uses a technique called **Graph RAG** (Retrieval-Augmented Generation using a graph). If you're new to AI terminology, here's the idea in five steps:
 
 1. **Query decomposition** — Your question gets broken down into smaller, more specific pieces.
