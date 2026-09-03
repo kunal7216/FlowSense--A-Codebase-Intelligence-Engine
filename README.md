@@ -161,6 +161,7 @@ mvn test
 
 These 25 tests run entirely offline — you don't need Neo4j, Postgres, or Ollama running yet. This is a good way to confirm the project builds correctly on your machine before setting up infrastructure.
 
+
 ### Step 3 — Pull the required AI models
 
 ```bash
