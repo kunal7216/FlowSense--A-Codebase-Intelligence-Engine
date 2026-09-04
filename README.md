@@ -27,6 +27,8 @@ This README is written to be understandable even if you're new to some of the to
 
 ---
 
+
+
 ## What Problem Does FlowSense Solve?
 
 Large Java codebases are hard to reason about. New developers spend weeks just figuring out how the code fits together. Reviewers approve pull requests without fully knowing what else in the system might be affected. Documentation is written once and never updated, so it slowly becomes wrong.
