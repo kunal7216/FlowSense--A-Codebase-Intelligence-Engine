@@ -4,6 +4,7 @@
 
 Think of it like this: instead of digging through thousands of files to understand how a large Java project works, you can just *ask* FlowSense — "What are the most important classes in this project?" or "What breaks if I change this method?" — and get an answer grounded in your actual code, not a guess.
 
+
 ---
 ## Table of Contents
 
