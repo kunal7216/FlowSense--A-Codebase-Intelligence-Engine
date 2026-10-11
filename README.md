@@ -1,6 +1,7 @@
 # FlowSense -- A Codebase Intelligence Engine
 
 
+
 **FlowSense is an AI-powered assistant that understands your Java codebase — so you can ask it questions in plain English, catch risky pull requests before they cause problems, and keep your documentation from going stale.**
 
 Think of it like this: instead of digging through thousands of files to understand how a large Java project works, you can just *ask* FlowSense — "What are the most important classes in this project?" or "What breaks if I change this method?" — and get an answer grounded in your actual code, not a guess.
